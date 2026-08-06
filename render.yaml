@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: todorist-v2
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm run render:build
+    startCommand: npm run render:start
+    healthCheckPath: /api/health
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: FRONTEND_URL
+        value: same-origin
+      - key: DATABASE_URL
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: SESSION_COOKIE_NAME
+        value: todorist_session
+      - key: SESSION_DAYS
+        value: 30
