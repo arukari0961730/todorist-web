@@ -1,16 +1,22 @@
-# todorist-v2
+# todorist-web
 
 ゲーム制作サークル向けの、チーム作業管理Webアプリです。
 
-プログラム、デザイン、サウンド、シナリオ、テスト、修正、レビューなど、ゲーム制作で発生する作業をチーム単位で管理します。将来的にはタスク管理に加えて、ダッシュボード、カレンダー、ガントチャート、カンバン、コメント、チームチャット、Pull Request共有までを1つのアプリへ統合します。
+プログラム、デザイン、サウンド、シナリオ、テスト、修正、レビューなど、ゲーム制作で発生する作業をチーム単位で管理します。タスク管理に加えて、ダッシュボード、カレンダー、ガントチャート、カンバン、コメント、チームチャット、Pull Request共有を1つのアプリへ統合しています。
 
-v1はHTML、CSS、JavaScript、LocalStorageで作成されています。v2ではReact、NestJS、PostgreSQLを使用し、複数ユーザー・複数端末から利用できるWebサービスを目指します。
+旧版はHTML、CSS、JavaScript、LocalStorageで作成されています。本プロジェクトではReact、NestJS、PostgreSQLを使用し、複数ユーザー・複数端末から利用できるWebサービスとして再構築しています。
+
+## 公開URL
+
+[https://todorist-web.onrender.com/](https://todorist-web.onrender.com/)
+
+RenderとNeonの無料枠を利用した少人数向け試験公開です。初めて利用する場合は、公開URLからユーザー登録を行ってください。既存のローカル開発用DBや旧版のLocalStorageに保存されたアカウント・データは公開環境へ引き継がれません。
 
 ## 現在の状態
 
-最終更新: 2026-08-05
+最終更新: 2026-08-07
 
-第一完成版の主要機能をローカル環境へ実装済みです。無料枠を利用した外部公開だけは、公開先アカウントを設定する段階まで保留しています。
+第一完成版の主要機能を実装し、RenderとNeonを使った無料試験公開まで完了しています。
 
 | 項目 | 状態 |
 |---|---|
@@ -26,13 +32,13 @@ v1はHTML、CSS、JavaScript、LocalStorageで作成されています。v2で�
 | チームチャット | 実装済み |
 | Pull Request共有 | 実装済み（手動登録） |
 | ReactとNestJSのAPI接続 | 実装済み |
-| 外部公開 | 未実施 |
+| 外部公開 | Render + Neonで試験公開済み |
 
-フロントエンドとバックエンドのLint・ビルド、単体テスト、2ユーザーによるE2Eテストが成功しています。PostgreSQL 16のコンテナもヘルスチェックとSQL接続を確認済みです。
+フロントエンドのLint・ビルド、バックエンドのビルド・単体テスト、Renderへの本番ビルドとデプロイが成功しています。公開環境ではPCとスマートフォンからのアクセス、ユーザー登録、ログイン、PostgreSQLへの保存を確認済みです。ローカルE2Eテストを実行する場合は、Docker Desktopと開発用PostgreSQLを先に起動する必要があります。
 
-## 第一完成目標
+## 第一完成版
 
-ローカル環境では、以下を実際に操作できる状態です。
+ローカル環境と公開環境で、以下を操作できる状態です。
 
 - ユーザー登録、ログイン、ログアウト、ログイン状態維持
 - チーム作成、一覧、選択、名前変更、削除
@@ -77,9 +83,21 @@ v1はHTML、CSS、JavaScript、LocalStorageで作成されています。v2で�
 
 ## システム構成
 
+公開環境:
+
 ```text
 利用者
-  ↓ HTTPS / HTTP
+  ↓ HTTPS
+Render Web Service
+  ├── React SPA
+  └── NestJS /api
+        ↓ Prisma / TLS
+      Neon PostgreSQL
+```
+
+ローカル開発環境:
+
+```text
 React（5173）
   ↓ /api
 NestJS（3000）
@@ -92,7 +110,7 @@ ReactからPostgreSQLへ直接接続しません。データの取得・検証�
 ## ディレクトリ構成
 
 ```text
-todorist-v2/
+todorist-web/
 ├── frontend/          React + TypeScript + Vite
 ├── backend/           NestJS + TypeScript
 ├── compose.yaml       開発用PostgreSQL
@@ -140,7 +158,7 @@ frontend/src/
 ## 必要な環境
 
 - Windows 11
-- Node.js 22以上
+- Node.js 22以上、25未満
 - npm 10以上
 - Docker Desktop
 - Docker Compose
@@ -187,7 +205,7 @@ PORT=3000
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/todorist_v2
 ```
 
-認証実装時に、フロントURLとセッション用秘密値を追加します。
+認証にはフロントURLとセッション用秘密値も必要です。
 
 ```dotenv
 FRONTEND_URL=http://localhost:5173
@@ -389,20 +407,27 @@ npm.cmd run render:start
 
 `.env` はGitへ追加しません。NeonやRenderの接続文字列、パスワード、セッション秘密鍵をREADMEやソースコードへ書かないでください。
 
-### 初回公開の順序
+### 現在の公開状態
 
-1. このフォルダーをGitリポジトリにする
-2. GitHubに非公開リポジトリを作成してpushする
-3. Neon FreeでPostgreSQLプロジェクトを作成する
-4. RenderでGitHubリポジトリの `render.yaml` を使ってBlueprintを作成する
-5. Renderの `DATABASE_URL` にNeon接続文字列を設定する
-6. 初回デプロイとPrismaマイグレーションの成功を確認する
-7. 登録、ログイン、チーム招待、タスク、コメント、チャット、PR共有を確認する
-8. 問題がなければ2～5人へURLを共有する
+- GitHubの非公開リポジトリとRenderを連携済み
+- `main` ブランチへのpushを起点にRenderへ自動デプロイ
+- RenderのWeb ServiceからReact SPAとNestJS APIを同一URLで配信
+- Neon PostgreSQLへTLS接続
+- 起動時にPrismaの適用待ちマイグレーションを実行
+- PCとスマートフォンからの利用を確認済み
 
-Render Free Web Serviceは無通信時に停止するため、最初のアクセスが遅くなる場合があります。試験公開中は重要データを定期的にエクスポートし、一般公開や本運用へ移る前に有料バックアップも検討します。
+### 無料枠の注意点
 
-機能実装後は、認証、権限、Team CRUD、招待、Task CRUD、削除連動、入力検証、同時編集を自動テストへ追加します。
+- Render Free Web Serviceは無通信状態が続くとスリープする
+- スリープ後の最初のアクセスは、起動まで時間がかかる場合がある
+- NeonのDBも未使用時は自動休止し、次の接続時に再開する
+- 無料枠や通信量の上限に達すると、翌月またはアップグレードまで停止・制限される場合がある
+- Renderがスリープまたは再起動しても、Neonに保存したDBデータは維持される
+- 無停止運用、SLA、自動バックアップを必要とする本番運用には無料プランを使用しない
+
+試験公開中は重要データを定期的にバックアップし、一般公開や本運用へ移る前に有料プランと自動バックアップを検討します。無料枠の内容は変更される可能性があるため、[RenderのFreeプラン](https://render.com/docs/free)と[Neonの料金ページ](https://neon.com/pricing)で最新情報を確認してください。
+
+今後機能を変更するときも、認証、権限、Team CRUD、招待、Task CRUD、削除連動、入力検証、同時編集の自動テストを維持・追加します。
 
 ## 確定済みの基本仕様
 
@@ -623,13 +648,13 @@ GitHub APIは使用せず、タイトル、HTTP/HTTPS URL、担当者、状態�
 
 少人数での試験公開は月額0円を目標にします。
 
-| 対象 | 予定サービス |
+| 対象 | 使用サービス |
 |---|---|
-| React | Cloudflare Pages Free |
+| React | Render Free Web Service |
 | NestJS | Render Free Web Service |
 | PostgreSQL | Neon Free |
-| URL | 各サービスの無料サブドメイン |
-| HTTPS | 各サービスの自動証明書 |
+| URL | `https://todorist-web.onrender.com/` |
+| HTTPS | Renderの自動証明書 |
 
 無料公開では次の制限を許容します。
 
@@ -652,7 +677,7 @@ GitHub APIは使用せず、タイトル、HTTP/HTTPS URL、担当者、状態�
 - [x] Task
 - [x] Reactの認証・チーム・タスク画面
 - [x] Lint・ビルド・単体テスト・E2Eテスト
-- [ ] 無料枠を利用した外部試験公開
+- [x] 無料枠を利用した外部試験公開
 
 ### 第2段階
 
