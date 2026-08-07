@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: todorist-v2
+    name: todorist-web
     runtime: node
     plan: free
     region: singapore
